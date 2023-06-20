@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<body>
+<form>
+    <label for="name">Name</label><br>
+    <input id="name" type="text" name="name"><br><br>
+    <label for="age">Age</label><br>
+    <input id="age" type="number" name="age"><br><br>
+    <p id="createUseText"></p>
+    <input id='btnCreateUser' type="submit" value="Create"><br><br>
+
+</form>
+<button id="btnGetUsers">Get users</button>
+<p id="text"></p>
+
+
+<script>
+    const btnGetUsers = document.getElementById('btnGetUsers')
+    btnGetUsers.addEventListener("click", getUsers)
+
+    const btnCreateUser = document.getElementById('btnCreateUser')
+    btnCreateUser.addEventListener("click", createUSer)
+
+    function insertUsersInHtml(result){
+        let text = document.getElementById('text')
+        let htmlResult= ''
+        for (let i = 0; i < result.length; i++) {
+            htmlResult += `<li>${result[i].name} - ${result[i].age}<button onclick="deleteUser(${result[i].id})">delete</button></li>`
+        }
+        text.innerHTML = `<ul>${htmlResult}</ul>`
+    }
+
+    function getUsers () {
+        const xhr = new XMLHttpRequest()
+        xhr.open('post', '/getUsers', true)
+        xhr.setRequestHeader("Content-Type", "application/json")
+        xhr.addEventListener("load", function () {
+            if (xhr.status===404){
+                document.getElementById('text').innerText='No users in data'
+            }
+            else{
+                let result = JSON.parse(xhr.response)
+                insertUsersInHtml(result)
+            }
+        })
+        xhr.send()
+    }
+
+    function deleteUser(id) {
+        const xhr = new XMLHttpRequest();
+        xhr.open('delete', `/deleteUser/${id}`, true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.addEventListener("load", function () {
+            let result = JSON.parse(xhr.response)
+            insertUsersInHtml(result)
+        })
+        xhr.send()
+    }
+
+    function createUSer(e) {
+        e.preventDefault()
+        let name = document.getElementById('name')
+        let age = document.getElementById('age')
+        let createUseText = document.getElementById('createUseText')
+
+        if (name.value&&age.value){
+            createUseText.innerHTML=''
+            let xhr = new XMLHttpRequest()
+            xhr.open('put', `/createUSer`)
+            xhr.setRequestHeader('Content-Type', 'application/json')
+            xhr.addEventListener("load", function () {
+                let result = JSON.parse(xhr.response)
+                insertUsersInHtml(result)
+            })
+            xhr.send(JSON.stringify({name:name.value, age:age.value}))
+        }
+        else{
+            createUseText.innerHTML='Fill both fields please'
+        }
+    }
+
+</script>
+</body>
+</html>
